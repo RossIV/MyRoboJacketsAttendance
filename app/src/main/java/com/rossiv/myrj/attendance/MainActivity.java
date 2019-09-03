@@ -16,6 +16,9 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private NxpNfcLib libInstance = null;
     private IDESFireEV1 desFireEV1 = null;
 
-    private TextView information_textView = null;
+    private Spinner spinnerAttendableType;
+    private EditText numberAttendableId;
+    private Button buttonSave;
 
     public static final String TAG = "MyRJ-Attendance";
 
@@ -65,31 +70,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Initializing the widget, and Get text view handle to be used further.
-     */
-    private void initializeView() {
-        /* Get text view handle to be used further */
-        information_textView = (TextView) findViewById(R.id.ScreenText);
-        information_textView.setMovementMethod(new ScrollingMovementMethod());
-        information_textView.setTextColor(Color.BLACK);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         boolean readPermission = (ContextCompat.checkSelfPermission(MainActivity.this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
@@ -102,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         initializeMifareLibrary();
-        initializeView();
+        addListenerOnButtonSave();
     }
 
     @Override
@@ -151,44 +137,58 @@ public class MainActivity extends AppCompatActivity {
             desFireEV1 = DESFireFactory.getInstance().getDESFire(libInstance.getCustomModules());
             try {
                 desFireEV1.getReader().connect();
-                onDESFireEV1CardDetected();
+                readBuzzCardData();
             } catch (Throwable t) {
                 t.printStackTrace();
             }
         } else if (CardType.UnknownCard == cardType) {
-            showMessage(getString(R.string.UNKNOWN_TAG), PRINT);
-            information_textView.setGravity(Gravity.CENTER);
+            showMessage(getString(R.string.UNKNOWN_TAG), TOAST);
         } else {
-            showMessage(getString(R.string.UNSUPPORTED_TAG), PRINT);
-            information_textView.setGravity(Gravity.CENTER);
+            showMessage(getString(R.string.UNSUPPORTED_TAG), TOAST);
         }
     }
 
-    public void onDESFireEV1CardDetected() {
+    public void readBuzzCardData() {
         // Initialize settings
         final int buzz_application = 0xBBBBCD;
         final int buzz_file = 0x01;
         byte[] buzzData = new byte[48];
         String buzzString = null;
 
-        information_textView.setText(EMPTY_SPACE);
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(R.string.card_detected).append(
-                desFireEV1.getType().getTagName());
-        stringBuilder.append("\n\n");
 
         // Read data
         try {
             desFireEV1.selectApplication(buzz_application);
             buzzData = desFireEV1.readData(buzz_file, 0, buzzData.length);
             buzzString = new String(buzzData, StandardCharsets.UTF_8);
-            stringBuilder.append(buzzString);
+            String[] buzzStringParts = buzzString.split("=");
+            String gtid = buzzStringParts[0];
+            String prox = buzzStringParts[1];
+            stringBuilder.append("\nGTID: ").append(gtid);
+            stringBuilder.append("\nProx: ").append(prox);
         } catch (Exception e) {
             stringBuilder.append(e.getMessage());
         }
 
-        showMessage(stringBuilder.toString(), PRINT);
+        showMessage(stringBuilder.toString(), TOAST);
         NxpLogUtils.save();
+    }
+
+    public void addListenerOnButtonSave() {
+        spinnerAttendableType = (Spinner) findViewById(R.id.spinnerAttendableType);
+        numberAttendableId = (EditText) findViewById(R.id.numberAttendableId);
+        buttonSave = (Button) findViewById(R.id.buttonSave);
+        buttonSave.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this,
+                        "Type : "+ String.valueOf(spinnerAttendableType.getSelectedItem()) +
+                                "\nID : "+ numberAttendableId.getText().toString(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**
@@ -206,14 +206,14 @@ public class MainActivity extends AppCompatActivity {
                         .show();
                 break;
             case PRINT:
-                information_textView.setText(str);
-                information_textView.setGravity(Gravity.START);
+//                information_textView.setText(str);
+//                information_textView.setGravity(Gravity.START);
                 NxpLogUtils.i(TAG, getString(R.string.card_data) + str);
                 break;
             case TOAST_PRINT:
                 Toast.makeText(MainActivity.this, "\n" + str, Toast.LENGTH_SHORT).show();
-                information_textView.setText(str);
-                information_textView.setGravity(Gravity.START);
+//                information_textView.setText(str);
+//                information_textView.setGravity(Gravity.START);
                 NxpLogUtils.i(TAG, "\n" + str);
                 break;
             default:

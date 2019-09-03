@@ -5,5 +5,15 @@
     <string name="card_detected">Card Detected:</string>
     <string name="card_data">Card Data:</string>
     <string name="UNKNOWN_TAG">Unknown Tag. Please present card again.</string>
-    <string name="UNSUPPORTED_TAG">Unsupported Tag. Only BuzzCards (Mifare DESFire EV1) are supported.</string>
+    <string name="UNSUPPORTED_TAG">Unsupported Tag. Only BuzzCards are supported.</string>
+
+    <string name="field_attendableId_text">ID</string>
+    <string name="button_save_text">Save</string>
+    <string name="button_upload_text">Upload</string>
+
+    <string name="field_attendableType_prompt">Select Attendable Type</string>
+    <string-array name="field_attendableType_entries">
+        <item>Event</item>
+        <item>Team</item>
+    </string-array>
 </resources>
