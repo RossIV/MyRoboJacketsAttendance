@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MyRoboJackets Attendance</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="card_detected">Card Detected:</string>
+    <string name="card_data">Card Data:</string>
+    <string name="UNKNOWN_TAG">Unknown Tag. Please present card again.</string>
+    <string name="UNSUPPORTED_TAG">Unsupported Tag. Only BuzzCards (Mifare DESFire EV1) are supported.</string>
+</resources>
