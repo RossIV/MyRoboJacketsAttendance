@@ -1,6 +1,7 @@
 package com.rossiv.myrj.attendance;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -29,7 +30,15 @@ import com.nxp.nfclib.desfire.IDESFireEV1;
 import com.nxp.nfclib.exceptions.NxpNfcLibException;
 import com.nxp.nfclib.utils.NxpLogUtils;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,6 +52,11 @@ public class MainActivity extends AppCompatActivity {
     private Spinner spinnerAttendableType;
     private EditText numberAttendableId;
     private Button buttonSave;
+    private Button buttonClear;
+    private Button buttonExport;
+
+    private ArrayList<ArrayList<String>> buzzcardQueue = new ArrayList<>();
+    private ArrayList<String> buzzcardQueue2 = new ArrayList<>();
 
     public static final String TAG = "MyRJ-Attendance";
 
@@ -89,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
 
         initializeMifareLibrary();
         addListenerOnButtonSave();
+        addListenerOnButtonClear();
+        addListenerOnButtonExport();
     }
 
     @Override
@@ -167,6 +183,10 @@ public class MainActivity extends AppCompatActivity {
             String prox = buzzStringParts[1];
             stringBuilder.append("\nGTID: ").append(gtid);
             stringBuilder.append("\nProx: ").append(prox);
+
+            String currentDateandTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(new Date());
+            buzzcardQueue.add(new ArrayList<>(Arrays.asList(currentDateandTime, gtid)));
+            buzzcardQueue2.add(gtid);
         } catch (Exception e) {
             stringBuilder.append(e.getMessage());
         }
@@ -189,6 +209,40 @@ public class MainActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void addListenerOnButtonClear() {
+        buttonClear = (Button) findViewById(R.id.buttonClear);
+        buttonClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buzzcardQueue.clear();
+                Toast.makeText(MainActivity.this, "Cleared Queue", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public void addListenerOnButtonExport() {
+        buttonExport = (Button) findViewById(R.id.buttonExport);
+        buttonExport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveBuzzCardQueueToFile(buzzcardQueue2);
+                Toast.makeText(MainActivity.this, "Exported to buzzcard_queue.txt", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void saveBuzzCardQueueToFile(ArrayList<String> arrayList) {
+        try {
+            FileOutputStream fileOutputStream = openFileOutput("buzzard_queue.txt", Context.MODE_PRIVATE);
+            ObjectOutputStream out = new ObjectOutputStream(fileOutputStream);
+            out.writeObject(arrayList);
+            out.close();
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

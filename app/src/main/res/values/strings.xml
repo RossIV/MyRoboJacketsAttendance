@@ -10,6 +10,10 @@
     <string name="field_attendableId_text">ID</string>
     <string name="button_save_text">Save</string>
     <string name="button_upload_text">Upload</string>
+    <string name="button_clear_text">Clear</string>
+    <string name="button_export_text">Export</string>
+
+    <string name="heading_buzzcard_scan_history">BuzzCard Scan History</string>
 
     <string name="field_attendableType_prompt">Select Attendable Type</string>
     <string-array name="field_attendableType_entries">
